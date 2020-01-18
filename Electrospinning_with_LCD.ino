@@ -19,8 +19,8 @@ int keypad_value_old = 0;
 long stepstomove = 400; //Minimum step size
 char btn_push;
 long totalSteps = 0;         //No of steps to move L
-int delayTotL;     //Dummy for storing delay L
-int delayTotR;     //Dummy for storing delay R
+long delayTotL;     //Dummy for storing delay L
+long delayTotR;     //Dummy for storing delay R
 float mmPersL = 0;
 float mmPersR = 0;
 byte mainMenuPage = 1;
@@ -30,6 +30,11 @@ uint32_t last_pulse1;
 uint32_t last_pulse2;
 unsigned long stepsL = 0;
 unsigned long stepsR = 0;
+unsigned long elapsedL;
+unsigned long elapsedR;
+unsigned long stepsOverL;   // dummy for steps over for L
+unsigned long stepsOverR;   // dummy for steps over for R
+
 
 void setup()
 {
@@ -37,7 +42,7 @@ void setup()
   delay(1000);
   SystemSetup();
   MainMenuDisplay();
-  delay(5);
+  delay(20);
 }
 
 void loop()
@@ -73,8 +78,7 @@ void loop()
     MainMenuDisplay();
     WaitBtnRelease();
   }
-  delay(5);
-
+  delay(20);
 }
 
 void MenuA()
@@ -109,7 +113,7 @@ void MenuA()
       lcd.setCursor(0, 3);
       lcd.print(stepsL);
       lcd.setCursor(8, 3);
-      lcd.print((float)delayTotL, 4);
+      lcd.print(delayTotL);
       lcd.setCursor(18, 3);
       lcd.print("us");
     }
@@ -134,7 +138,7 @@ void MenuB()
       stepsR = stepsR - 10;
     }
     mmPersR = (float)stepsR / 800.0;
-    delayTotR = (1000000.0/stepsR);
+    delayTotR = (1000000.0 / stepsR);
     lcd.setCursor(0, 1);
     lcd.print(stepsR);
     lcd.setCursor(9, 1);
@@ -148,7 +152,7 @@ void MenuB()
       lcd.setCursor(0, 3);
       lcd.print(stepsR);
       lcd.setCursor(8, 3);
-      lcd.print((float)delayTotR, 4);
+      lcd.print(delayTotR);
       lcd.setCursor(18, 3);
       lcd.print("us");
     }
@@ -314,9 +318,9 @@ char ReadKeypad()
     right   0
   */
   keypad_value = analogRead(keypad_pin);
-  if (keypad_value == 0)
+  if (keypad_value < 50)
     return 'R';
-  else if ((keypad_value > 100) && (keypad_value < 180))
+  else if (keypad_value < 300)
     return 'U';
   else if (keypad_value < 450)
     return 'D';
