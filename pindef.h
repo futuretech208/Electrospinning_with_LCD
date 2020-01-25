@@ -10,3 +10,6 @@
 #define Lmot  9  //assigned X limit pin
 #define Rmot  10 //assigned Y limit pin
 #define cntlPin  4
+#define DELAY_L     150
+#define DELAY_R     150
+#define DIR  11

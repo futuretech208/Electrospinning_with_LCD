@@ -30,16 +30,20 @@ uint32_t last_pulse1;
 uint32_t last_pulse2;
 unsigned long stepsL = 0;
 unsigned long stepsR = 0;
-unsigned long elapsedL;
-unsigned long elapsedR;
-unsigned long stepsOverL;   // dummy for steps over for L
-unsigned long stepsOverR;   // dummy for steps over for R
+unsigned long startTimeL;
+unsigned long startTimeR;
+unsigned long whenTostopL;   // dummy for steps over for L
+unsigned long whenTostopR;   // dummy for steps over for R
+unsigned long moveL;
+unsigned long moveR;
+uint32_t xmot;
+uint32_t ymot;
 
 
 void setup()
 {
   welcomeScreen();
-  delay(1000);
+  delay(2000);
   SystemSetup();
   MainMenuDisplay();
   delay(20);
@@ -49,8 +53,10 @@ void loop()
 {
   last_pulse1 = micros();
   last_pulse2 = micros();
-  lmotorInvert();
-  rmotorInvert();
+  xmot = micros();
+  ymot = micros();
+  //startTimeL = millis();
+  RunMotor();
   btn_push = ReadKeypad();
   MainMenuBtn();
   if (btn_push == 'S') //enter selected menu
@@ -185,6 +191,8 @@ void MenuC()
       lcd.print("Stored");
       lcd.setCursor(0, 3);
       lcd.print(totalSteps);
+      moveL = delayTotL * totalSteps * 1000;
+      //moveR =
     }
   }
 }
@@ -230,11 +238,16 @@ void MenuE()
         lcd.print(" GROUND THE NEEDLE");
         lcd.setCursor(0, 3);
         lcd.print("BEFORE OPENING DOOR");
+
         while (ReadKeypad() != 'U')
         {
+          //          startTimeL = millis();
+          //          if (millis () - startTimeL >= moveL)
+          //          {
           if (micros() - last_pulse1 >= delayTotL)
           {
             last_pulse1 += delayTotL;
+
             digitalWrite(Ldir, LOW);
             digitalWrite(Lstep, LOW);
             digitalWrite(Lstep, HIGH);
@@ -247,6 +260,7 @@ void MenuE()
             digitalWrite(Rstep, HIGH);
           }
         }
+        // }
       }
       if (ReadKeypad() == 'U')
       {
@@ -336,25 +350,46 @@ void WaitBtnRelease()
 {
   while ( analogRead(keypad_pin) < 800) {}
 }
-void lmotorInvert()
+void RunMotor()
 {
-  if (digitalRead(Lmot) == HIGH)
+  while ((digitalRead(Lmot) == LOW) && (digitalRead(DIR) == LOW))
   {
     digitalWrite(Ldir, HIGH);         // invert L motor
-    digitalWrite(Lstep, LOW);
-    delayMicroseconds(150);
-    digitalWrite(Lstep, LOW);
-    delayMicroseconds(150);
+    if (micros() - xmot >= DELAY_L)
+    {
+      xmot += DELAY_L;
+      digitalWrite(Lstep, LOW);
+      digitalWrite(Lstep, HIGH);
+    }
   }
-}
-void rmotorInvert()
-{
-  if (digitalRead(Rmot) == LOW)
+  while ((digitalRead(Lmot) == LOW) && (digitalRead(DIR) == HIGH))
   {
-    digitalWrite(Rdir, HIGH);                 // invert R motor
-    digitalWrite(Rstep, HIGH);
-    delayMicroseconds(150);
-    digitalWrite(Rstep, LOW);
-    delayMicroseconds(150);
+    digitalWrite(Ldir, LOW);         // invert L motor
+    if (micros() - xmot >= DELAY_L)
+    {
+      xmot += DELAY_L;
+      digitalWrite(Lstep, LOW);
+      digitalWrite(Lstep, HIGH);
+    }
+  }
+  while ((digitalRead(Rmot) == LOW) && (digitalRead(DIR) == LOW))
+  {
+    digitalWrite(Rdir, HIGH);         // invert L motor
+    if (micros() - ymot >= DELAY_R)
+    {
+      ymot += DELAY_R;
+      digitalWrite(Rstep, LOW);
+      digitalWrite(Rstep, HIGH);
+    }
+  }
+  while ((digitalRead(Rmot) == LOW) && (digitalRead(DIR) == HIGH))
+  {
+    digitalWrite(Rdir, LOW);         // invert L motor
+    if (micros() - ymot >= DELAY_R)
+    {
+      ymot += DELAY_R;
+      digitalWrite(Rstep, LOW);
+      digitalWrite(Rstep, HIGH);
+    }
   }
 }

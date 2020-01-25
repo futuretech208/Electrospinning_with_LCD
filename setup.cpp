@@ -22,6 +22,7 @@ void SystemSetup()
 {
 
   pinMode(EN, OUTPUT);
+  pinMode(DIR, INPUT);
   pinMode(cntlPin, INPUT);
   pinMode(Lstep, OUTPUT);
   pinMode(Rstep, OUTPUT);
